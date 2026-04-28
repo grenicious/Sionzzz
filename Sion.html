@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>zDEMON // ONYX-RED</title>
+    <style>
+        :root {
+            --pure-black: #000000;
+            --deep-red: #1a0003;
+            --neon-red: #ff0033;
+            --neon-glow: rgba(255, 0, 51, 0.6);
+            --text-main: #ffffff;
+            --text-dim: rgba(255, 255, 255, 0.4);
+            --panel-bg: rgba(15, 15, 15, 0.95);
+        }
+
+        * {
+            margin: 0; padding: 0; box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--pure-black);
+            color: var(--text-main);
+            display: flex; justify-content: center;
+            min-height: 100vh; overflow-x: hidden;
+        }
+
+        .vignette {
+            position: fixed; inset: 0;
+            background: radial-gradient(circle at center, transparent 20%, var(--pure-black) 100%),
+                        radial-gradient(circle at 50% -20%, var(--deep-red) 0%, transparent 50%);
+            z-index: 0; pointer-events: none;
+        }
+
+        .wrapper {
+            width: 100%; max-width: 420px;
+            padding: 25px 20px;
+            position: relative; z-index: 10;
+            display: flex; flex-direction: column; gap: 20px;
+        }
+
+        header {
+            display: flex; justify-content: space-between; align-items: flex-end;
+            border-bottom: 2px solid var(--neon-red);
+            padding-bottom: 10px;
+        }
+
+        .logo { font-size: 24px; font-weight: 900; letter-spacing: -1px; text-transform: uppercase; }
+        .logo span { color: var(--neon-red); text-shadow: 0 0 10px var(--neon-glow); }
+        .ver { font-size: 10px; color: var(--text-dim); font-family: monospace; }
+
+        .stats-ring {
+            background: var(--panel-bg);
+            border: 1px solid rgba(255, 0, 51, 0.2);
+            border-radius: 30px; padding: 20px;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+        }
+
+        .stat-box { display: flex; flex-direction: column; align-items: center; }
+        .stat-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+        .stat-val { font-size: 28px; font-weight: 800; color: #fff; }
+        .stat-val span { color: var(--neon-red); font-size: 14px; }
+
+        /* LIVE TERMINAL PANEL */
+        .terminal {
+            background: #080808; border-radius: 15px; padding: 12px;
+            font-family: monospace; font-size: 10px; color: var(--neon-red);
+            height: 60px; overflow: hidden; border: 1px solid #111;
+        }
+
+        .grid {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;
+        }
+
+        .tile {
+            background: #0a0a0a; border: 1px solid #1a1a1a;
+            border-radius: 20px; padding: 20px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: 0.3s; cursor: pointer;
+        }
+
+        .tile i { font-size: 22px; margin-bottom: 10px; color: var(--text-dim); }
+        .tile span { font-size: 12px; font-weight: 600; color: var(--text-dim); }
+
+        .tile.active {
+            border-color: var(--neon-red);
+            background: linear-gradient(145deg, #1a0003, #0a0a0a);
+            box-shadow: 0 0 15px rgba(255, 0, 51, 0.1);
+        }
+        .tile.active i { color: var(--neon-red); text-shadow: 0 0 8px var(--neon-glow); }
+        .tile.active span { color: #fff; }
+
+        .settings {
+            background: var(--panel-bg); border-radius: 25px; padding: 5px 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 0;
+        }
+        .row:not(:last-child) { border-bottom: 1px solid rgba(255,255,255,0.05); }
+        
+        .row-info h4 { font-size: 14px; }
+        .row-info p { font-size: 10px; color: var(--text-dim); }
+
+        .toggle {
+            width: 46px; height: 24px; background: #222; border-radius: 12px;
+            position: relative; transition: 0.4s;
+        }
+        .dot {
+            width: 18px; height: 18px; background: #444; border-radius: 50%;
+            position: absolute; top: 3px; left: 3px; transition: 0.3s;
+        }
+        .toggle.on { background: var(--neon-red); }
+        .toggle.on .dot { left: 25px; background: #fff; }
+
+        /* TRIGGER BUTTON */
+        .trigger-area { margin-top: auto; padding-top: 10px; }
+
+        .btn-boost {
+            width: 100%; height: 60px; background: var(--neon-red);
+            border-radius: 20px; display: flex; align-items: center; justify-content: center;
+            font-size: 16px; font-weight: 800; color: #fff; border: none;
+            box-shadow: 0 10px 20px rgba(255, 0, 51, 0.2);
+            transition: 0.2s;
+        }
+        .btn-boost:active { transform: scale(0.95); background: #fff; color: var(--neon-red); }
+
+    </style>
+</head>
+<body>
+
+    <div class="vignette"></div>
+
+    <div class="wrapper">
+        <header>
+            <div class="logo">zDEMON<span>.</span>ONYX</div>
+            <div class="ver">SYS_v2.5</div>
+        </header>
+
+        <div class="stats-ring">
+            <div class="stat-box">
+                <div class="stat-label">Frame Rate</div>
+                <div class="stat-val" id="fps">120<span>Hz</span></div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Net Delay</div>
+                <div class="stat-val" id="ping">14<span>ms</span></div>
+            </div>
+        </div>
+
+        <div class="terminal" id="term">
+            <div>> KERNEL_READY</div>
+            <div>> AWAITING_INJECTION...</div>
+        </div>
+
+        <div class="grid">
+            <div class="tile active" onclick="toggleTile(this)">
+                <i>⚡</i>
+                <span>Turbo Core</span>
+            </div>
+            <div class="tile" onclick="toggleTile(this)">
+                <i>🎯</i>
+                <span>Aim Assist</span>
+            </div>
+            <div class="tile active" onclick="toggleTile(this)">
+                <i>🌀</i>
+                <span>RAM Flush</span>
+            </div>
+            <div class="tile" onclick="toggleTile(this)">
+                <i>🛰</i>
+                <span>DNS Bypass</span>
+            </div>
+        </div>
+
+        <div class="settings">
+            <div class="row" onclick="toggleBtn(this)">
+                <div class="row-info">
+                    <h4>High Priority</h4>
+                    <p>Focus CPU on game process</p>
+                </div>
+                <div class="toggle on"><div class="dot"></div></div>
+            </div>
+            <div class="row" onclick="toggleBtn(this)">
+                <div class="row-info">
+                    <h4>Ghost Protocol</h4>
+                    <p>Hide status from servers</p>
+                </div>
+                <div class="toggle"><div class="dot"></div></div>
+            </div>
+        </div>
+
+        <div class="trigger-area">
+            <button class="btn-boost" onclick="boost()">INITIALIZE BOOST</button>
+        </div>
+    </div>
+
+    <script>
+        function toggleTile(el) {
+            el.classList.toggle('active');
+            logTerm(el.classList.contains('active') ? "MODULE_ENABLED" : "MODULE_DISABLED");
+        }
+
+        function toggleBtn(el) {
+            const t = el.querySelector('.toggle');
+            t.classList.toggle('on');
+            if (window.navigator.vibrate) window.navigator.vibrate(10);
+            logTerm("SYS_PARAM_UPDATED");
+        }
+
+        function logTerm(msg) {
+            const term = document.getElementById('term');
+            const line = document.createElement('div');
+            line.innerText = `> ${msg}_${Math.floor(Math.random()*999)}`;
+            term.prepend(line);
+        }
+
+        function boost() {
+            const btn = document.querySelector('.btn-boost');
+            btn.innerText = "OPTIMIZING...";
+            if (window.navigator.vibrate) window.navigator.vibrate([50, 30, 50]);
+
+            const tasks = ["PURGING_RAM", "LOCKING_THREADS", "BYPASSING_PACKETS", "SUCCESS"];
+            tasks.forEach((t, i) => {
+                setTimeout(() => logTerm(t), i * 200);
+            });
+
+            setTimeout(() => {
+                btn.innerText = "SYSTEM PEAKED";
+                setTimeout(() => btn.innerText = "INITIALIZE BOOST", 2000);
+            }, 1000);
+        }
+
+        setInterval(() => {
+            document.getElementById('fps').innerHTML = (118 + Math.floor(Math.random()*5)) + "<span>Hz</span>";
+            document.getElementById('ping').innerHTML = (12 + Math.floor(Math.random()*4)) + "<span>ms</span>";
+        }, 2000);
+    </script>
+</body>
+</html>
